@@ -66,27 +66,27 @@ The live Cell at output index 0 was retrieved by its OutPoint and the `outputDat
 
 ---
 
-## Reflection
+## Reflections
 
-<!-- Add your personal, non-AI reflection here. Suggested points: -->
+Detailed reflections for each step of the process:
 
-<!-- 
-- What you learned about the CKB Cell model and how data is stored in outputData rather than input scripts.
-- What stood out about the process — e.g., how Cell data is purely a byte array, or how OffCKB devnet simplifies local testing.
-- Any setup or debugging details you experienced, like configuring NETWORK=devnet or troubleshooting the devnet connection.
-- How retrieving a Live Cell by OutPoint helped connect the write and read flow.
--->
-
-*Write your reflection here...*
+| Step | Reflection |
+|---|---|
+| 1. Encode & Decode | [`reflection-01-encode-decode.md`](reflection-01-encode-decode.md) |
+| 2. Build Transaction | [`reflection-02-build-transaction.md`](reflection-02-build-transaction.md) |
+| 3. Retrieve Live Cell | [`reflection-03-live-cell.md`](reflection-03-live-cell.md) |
 
 ---
 
 ## Files
 
 ```
-├── README.md              # This submission document
-├── proof-output.md        # Detailed proof output reference
-├── terminal-output.txt    # Raw terminal transcript
+├── README.md                          # This submission document
+├── proof-output.md                    # Detailed proof output reference
+├── terminal-output.txt                # Raw terminal transcript
+├── reflection-01-encode-decode.md     # Reflection on step 1
+├── reflection-02-build-transaction.md # Reflection on step 2
+├── reflection-03-live-cell.md         # Reflection on step 3
 └── screenshots/
     ├── 00-terminal-output.png
     ├── 01-encode-decode.png
