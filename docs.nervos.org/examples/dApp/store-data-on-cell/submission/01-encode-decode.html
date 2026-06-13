@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Store Data on Cell - Encode and Decode</title>
+    <link rel="stylesheet" href="./proof.css">
+  </head>
+  <body>
+    <main class="frame">
+      <section class="panel">
+        <div class="topbar">
+          <h1 class="title">Store Data on Cell Proof</h1>
+          <div class="tag">OffCKB devnet</div>
+        </div>
+        <div class="content">
+          <p class="eyebrow">Proof 1</p>
+          <h2>Encode and Decode Message</h2>
+          <div class="grid">
+            <div class="label">Message</div>
+            <div class="value message">CKB cell proof: data lives in outputData on local devnet.</div>
+            <div class="label">Encoded hex</div>
+            <div class="value">0x434b422063656c6c2070726f6f663a2064617461206c6976657320696e206f757470757444617461206f6e206c6f63616c206465766e65742e</div>
+            <div class="label">Decoded text</div>
+            <div class="value message">CKB cell proof: data lives in outputData on local devnet.</div>
+          </div>
+          <div class="success">The UTF-8 message was encoded into Cell-compatible hex and decoded back to the same text.</div>
+          <div class="footer">
+            <span>Source: tutorial lib.ts utf8ToHex / hexToUtf8 flow</span>
+            <span>RPC: http://localhost:28114</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

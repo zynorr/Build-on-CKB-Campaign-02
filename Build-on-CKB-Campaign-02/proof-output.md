@@ -1,0 +1,39 @@
+# Store Data on Cell Terminal Proof
+
+This proof was captured from a real terminal run of `node campaign-proof.js` against local OffCKB devnet RPC `http://localhost:28114`.
+
+## Terminal Output
+
+```text
+$ node campaign-proof.js
+Store Data on Cell campaign proof
+devnet RPC: http://localhost:28114
+created at: 2026-06-13T17:48:35.025Z
+
+=== store-data-on-cell ===
+[1] Encode and decode message
+message: CKB cell proof: data lives in outputData on local devnet.
+encoded hex: 0x434b422063656c6c2070726f6f663a2064617461206c6976657320696e206f757470757444617461206f6e206c6f63616c206465766e65742e
+decoded text: CKB cell proof: data lives in outputData on local devnet.
+
+[2] Building the transaction
+sender address: ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqvarm0tahu0qfkq6ktuf3wd8azaas0h24c9myfz6
+balance before: 4199952799997912 shannons
+output[0].data: 0x434b422063656c6c2070726f6f663a2064617461206c6976657320696e206f757470757444617461206f6e206c6f63616c206465766e65742e
+outputs count: 2
+tx hash: 0x14a53d6f5fc6a0a78697a5fba0ca813f4b4c55f17ebd4cdb1eb150569e354910
+
+[3] Retrieving Live Cell data
+out point: 0x14a53d6f5fc6a0a78697a5fba0ca813f4b4c55f17ebd4cdb1eb150569e354910:0x0
+live cell data: 0x434b422063656c6c2070726f6f663a2064617461206c6976657320696e206f757470757444617461206f6e206c6f63616c206465766e65742e
+decoded live cell message: CKB cell proof: data lives in outputData on local devnet.
+```
+
+## Proof Details
+
+- Message: `CKB cell proof: data lives in outputData on local devnet.`
+- Encoded hex: `0x434b422063656c6c2070726f6f663a2064617461206c6976657320696e206f757470757444617461206f6e206c6f63616c206465766e65742e`
+- Sender address: `ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqvarm0tahu0qfkq6ktuf3wd8azaas0h24c9myfz6`
+- Transaction hash: `0x14a53d6f5fc6a0a78697a5fba0ca813f4b4c55f17ebd4cdb1eb150569e354910`
+- Out point: `0x14a53d6f5fc6a0a78697a5fba0ca813f4b4c55f17ebd4cdb1eb150569e354910:0x0`
+- Decoded live cell message: `CKB cell proof: data lives in outputData on local devnet.`
