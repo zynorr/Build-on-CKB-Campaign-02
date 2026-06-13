@@ -78,18 +78,4 @@ Detailed reflections for each step of the process:
 
 ---
 
-## Files
 
-```
-├── README.md                          # This submission document
-├── proof-output.md                    # Detailed proof output reference
-├── terminal-output.txt                # Raw terminal transcript
-├── reflection-01-encode-decode.md     # Reflection on step 1
-├── reflection-02-build-transaction.md # Reflection on step 2
-├── reflection-03-live-cell.md         # Reflection on step 3
-└── screenshots/
-    ├── 00-terminal-output.png
-    ├── 01-encode-decode.png
-    ├── 02-build-transaction.png
-    └── 03-live-cell.png
-```
