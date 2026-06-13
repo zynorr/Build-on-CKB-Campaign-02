@@ -1,18 +1,4 @@
-# Dependencies
-node_modules/
-**/node_modules/
-
-# Build outputs
-dist/
-build/
-out/
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
@@ -22,12 +8,5 @@ Thumbs.db
 *.swp
 *.swo
 
-# Logs
-*.log
-npm-debug.log*
-
-# Generated screenshots utility
-generate_screenshots.py
-
-# System files
+# Editor temp files
 *~
