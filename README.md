@@ -1,5 +1,7 @@
 # Build on CKB — Campaign 02: Store Data on Cell
 
+> **Campaign #03:** [Build a Simple Lock submission](Campaign-03-Simple-Lock/README.md)
+
 **Quest:** Complete the OffCKB quick start and Store Data on Cell tutorial.  
 **Submitted by:** [zynorr](https://github.com/zynorr)  
 **Date:** 2026-06-13
