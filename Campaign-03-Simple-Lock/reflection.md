@@ -1,103 +1,87 @@
-# Personal Reflection
-
-> **Entrant drafting notes:** Rewrite these verified facts in your own voice
-> before submitting. Remove this notice and any points you did not personally
-> observe or agree with. The campaign requires a non-AI-generated reflection.
 
 ## What I Learned
+The biggest lesson was that CKB does not use persistent smart-contract accounts in the same way as account-based blockchains. State and assets exist in immutable Cells. A Cell cannot be updated directly. To change its state or transfer its capacity, a transaction consumes the existing Cell as an input and creates new output Cells. This made it clearer why CKB applications are designed around constructing and validating state transitions.
 
-Use the following exact facts to explain what changed in your understanding:
+I also learned that a Lock Script is a validation rule for consuming a Cell. It does not receive a normal function call from the frontend. Instead, it runs when a transaction attempts to consume a Cell protected by that script. If the script returns `0`, the transaction is valid. If it returns a non-zero exit code, the transaction is rejected.
 
-- The deployment created a code Cell containing `hash-lock.bc`. Other Cells use
-  its out point as a code dependency instead of calling a persistent contract
-  account.
-- The deployed script uses the `data2` hash type. Its code hash is
-  `0xcd262cb39d9e83f63e5415a56a23982fb6ae79b993e3cf371c12fad71dd23519`.
-- The deployment transaction is
-  `0xcaf34e8e7cf174c567c0fc3f3f7c9ddeec5a1d7a66f0b8a261d4d3d0c5f41fea`,
-  and the contract is stored at output index `0`.
-- The lock arguments contain the CKB JavaScript VM prefix followed by the
-  expected hash. The contract takes the bytes from offset `35` onward as that
-  expected hash.
-- To unlock a Cell, the contract reads the first group-input witness and uses
-  its `lock` field as the preimage. It computes `hashCkb(preimage)` and compares
-  the result with the expected hash from the lock arguments.
-- A matching hash returns exit code `0`, allowing the input Cell to be
-  consumed. A mismatch returns exit code `11`, rejecting the transaction.
-- The successful run funded the lock with `300 CKB`, transferred `99 CKB`, and
-  left `200.99999 CKB` protected by the same hash lock.
+## Understanding the `hash_lock` Contract
 
-## What I Debugged
+The tutorial contract gave me a practical example of this validation model. The deployed bytecode was stored in a code Cell and referenced by its code hash and Cell dependency. The deployed script used the `data2` hash type and had this code hash:
 
-Use the points that reflect what you personally found most useful:
+`0xcd262cb39d9e83f63e5415a56a23982fb6ae79b993e3cf371c12fad71dd23519`
 
-- The initial build used the Unix command `./node_modules/.bin/esbuild`.
-  Windows rejected it with `'.' is not recognized as an internal or external
-  command`.
-- The Windows-compatible fix uses esbuild's Node API through `buildSync()` and
-  compiles the bundle with `offckb debugger`.
-- pnpm initially blocked dependency install scripts. The approved packages were
-  `esbuild`, `secp256k1`, `sharp`, and `unrs-resolver`.
-- Starting OffCKB again produced `EADDRINUSE` on port `28114`. This did not mean
-  the chain had failed; it meant the Devnet proxy was already running. The
-  active chain was confirmed with `offckb logs node --tail 8`.
-- Running the deploy command from the repository root failed because that
-  directory had no `package.json`. Deployment worked after changing to
-  `examples/dApp/simple-lock`.
-- The deploy script also needed `pathToFileURL(process.argv[1]).href` for its
-  ES module entry-point check to work with Windows paths.
-- The frontend was changed to use a visible unlock-preimage field instead of a
-  browser prompt. This made the complete lock and unlock flow easier to test
-  and document.
+The deployment transaction was:
+
+`0xcaf34e8e7cf174c567c0fc3f3f7c9ddeec5a1d7a66f0b8a261d4d3d0c5f41fea`
+
+The contract reads the current Lock Script and takes the bytes from offset `35` onward as the expected preimage hash. The preceding bytes identify the JavaScript VM program and hash type used to execute the contract.
+
+When someone tries to consume a protected Cell, the contract reads the first group-input witness. It treats the witness `lock` field as the preimage, calculates `hashCkb(preimage)`, and compares the result with the expected hash stored in the lock arguments. A matching value returns exit code `0`, while an incorrect preimage returns exit code `11`.
+
+This helped me understand that the witness supplies authorization data without storing it permanently inside the Cell being protected. The Lock Script defines how that authorization data must be verified.
+
+## Building and Deploying on Windows
+
+The most valuable part of the tutorial was debugging the Windows-specific problems.
+
+The first contract build failed because the original build script executed:
+
+`./node_modules/.bin/esbuild`
+
+That command format works in Unix-like environments but was not recognized by Windows. I changed the build process to use esbuild's Node API through `buildSync()`. I also used `offckb debugger` to compile the bundled JavaScript into CKB bytecode.
+
+pnpm initially blocked the install scripts for `esbuild`, `secp256k1`, `sharp`, and `unrs-resolver`. I had to approve those packages and rebuild the dependencies before the contract could compile successfully.
+
+I also encountered an `EADDRINUSE` error on port `28114` when running `offckb node`. At first, this looked like a failure, but it actually meant that the OffCKB Devnet proxy was already running. I confirmed this by checking the node logs with:
+
+`offckb logs node --tail 8`
+
+The logs showed that the chain was still producing and indexing blocks.
+
+Another deployment attempt failed because I ran `pnpm run deploy` from the repository root, which did not contain the required `package.json`. Changing to the `examples/dApp/simple-lock` directory fixed that issue. The deployment script also needed to convert the Windows entry path with `pathToFileURL(process.argv[1]).href` for its ES module check.
+
+These problems taught me to distinguish between dependency errors, operating-system compatibility errors, incorrect working directories, network-port conflicts, and actual contract execution failures.
+
+## Completing the Frontend Flow
+
+After deploying the contract, I copied the generated deployment metadata into the frontend. This allowed the frontend to use the correct code hash and Cell dependency when constructing transactions.
+
+The frontend generated a hash-lock address from the preimage hash. I funded this address with 300 Devnet CKB. To unlock it, the frontend constructed a transaction containing the receiver output, the deployed contract dependency, the CKB JavaScript VM dependency, the protected input Cells, and the preimage inside the witness.
+
+I transferred 99 CKB to the receiver. After the transaction was committed, the hash-lock balance became 200.99999 CKB. This showed that the original Cell had been consumed and replaced with a receiver Cell and a change Cell still protected by the hash lock.
+
+Completing this transaction helped me understand how the contract, deployment artifacts, frontend, RPC client, Cell collector, transaction inputs, outputs, dependencies, and witnesses work together. The frontend does not directly execute the Lock Script. It proposes a transaction, and the CKB node executes the script while validating that transaction.
 
 ## Weaknesses of the `hash_lock` Example
 
-Choose the weaknesses you actually consider important and explain why:
+The main weakness is that the preimage becomes public when it is included in the transaction witness. Anyone observing the transaction can learn it. This means a simple hash lock should not be treated like permanent password-based ownership.
 
-- **The secret becomes public:** the preimage is placed in a transaction
-  witness. Once a transaction is broadcast, other participants can see it.
-- **Reusing a hash is unsafe:** every live Cell protected by the same hash can
-  be unlocked with the same preimage. After one spend reveals the secret,
-  another party could race to spend the remaining Cells.
-- **Weak secrets can be guessed:** the expected hash is public in the lock
-  arguments. A short or predictable text preimage can be brute-forced offline.
-- **There is no identity check:** possession of the preimage is the only
-  authorization. The example does not require an owner signature.
-- **The authorization is not bound to an intended payment:** anyone who learns
-  the preimage can build a transaction with different recipient outputs.
-- **There is no recovery path:** losing the preimage can lock the Cells
-  permanently because the example has no timeout or refund branch.
-- **The UI exposes the preimage:** the unlock field is a normal text input, so
-  the secret is visible on screen.
-- **String encoding can disagree:** the hash-generation UI converts JavaScript
-  characters with `charCodeAt(0)`, while the unlock witness uses `TextEncoder`
-  UTF-8 bytes. Non-ASCII input can therefore produce inconsistent bytes.
-- **Confirmation is time-based:** the frontend waits a fixed 10 seconds instead
-  of polling `get_transaction`, so a slow block can leave the displayed state
-  stale.
-- **The displayed fee is inconsistent:** the page says `0.001 CKB`, but the
-  transaction builder subtracts `1,000` shannons, which is `0.00001 CKB`.
-  The fee is also fixed rather than calculated from transaction size and fee
-  rate.
+Reusing the same preimage is particularly dangerous. If several live Cells use the same hash, spending one Cell reveals the secret needed to unlock all the others. Another participant could use the revealed preimage to construct a competing transaction that sends the remaining capacity somewhere else.
+
+The example also allows weak text preimages such as ordinary words or short phrases. Because the expected hash is public in the lock arguments, an attacker can perform an offline brute-force or dictionary attack until they find a matching preimage.
+
+Another weakness is the lack of identity verification. The script only checks whether the spender knows the preimage. It does not require a signature from an owner and does not bind the authorization to a specific receiver or transaction. Anyone who learns the secret can create their own transaction with different outputs.
+
+There is also no recovery mechanism. If the owner loses the preimage, the protected Cells can remain locked permanently because the example has no timeout or refund branch.
+
+I noticed several frontend weaknesses as well. The preimage is entered through a normal text field, making it visible on screen. The application also logs values that should be treated carefully. Hash generation uses JavaScript character values, while the witness uses UTF-8 encoding through `TextEncoder`. Non-ASCII text could therefore produce inconsistent byte representations.
+
+The frontend waits a fixed 10 seconds before refreshing the balance instead of polling `get_transaction`. This can display stale information when block confirmation takes longer. The interface says the fee is `0.001 CKB`, while the transaction code subtracts 1,000 shannons, which is `0.00001 CKB`. The fee is also fixed rather than calculated from transaction size and the current fee rate.
 
 ## How I Would Improve It
 
-Select the changes you would prioritize and explain the trade-offs:
+I would generate the preimage from cryptographically secure random bytes instead of allowing a short memorable phrase. Each locked Cell should use a unique secret, salt, or nonce so that revealing one preimage does not compromise other Cells.
 
-- Generate a cryptographically random, high-entropy preimage rather than using
-  memorable text.
-- Use a unique salt or nonce and a different hash for each locked Cell so one
-  revealed secret does not unlock unrelated Cells.
-- Combine the hash condition with an owner signature or multisignature check.
-- Bind authorization to the intended transaction outputs so a revealed
-  preimage cannot redirect the payment.
-- Add an HTLC-style timeout and refund branch using CKB's `since` field, giving
-  the original owner a recovery route after a deadline.
-- Encode the preimage with `TextEncoder` everywhere and validate its byte length
-  before creating the lock.
-- Use a password-style input, avoid logging the preimage, and clear it from the
-  UI after submission.
-- Poll transaction status through RPC rather than assuming confirmation after
-  10 seconds.
-- Calculate and display the same fee from transaction size and the selected fee
-  rate.
+I would combine the hash condition with an owner signature. The script could require both a valid preimage and a signature from an authorized public key. This would prevent someone who only learns the secret from redirecting the funds.
+
+For payment or swap applications, I would implement an HTLC-style design. One branch would allow the receiver to spend with the correct preimage before a deadline. A second branch would allow the original sender to recover the funds after the deadline using a signature and CKB's `since` field.
+
+I would also bind the authorization to the intended transaction outputs. This would ensure that the preimage cannot be reused to create a transaction with a different receiver or amount.
+
+On the frontend, I would encode the preimage with `TextEncoder` everywhere, require a minimum byte length, hide the secret while typing, avoid logging it, and clear it from memory and the interface after submission. I would poll the transaction through RPC until it reaches a committed or rejected state. Finally, I would calculate the transaction fee from its serialized size and fee rate and display that same value to the user.
+
+## Conclusion
+
+This tutorial changed my understanding of CKB from separate concepts into a complete transaction lifecycle. I built a Lock Script, compiled it into CKB bytecode, deployed it as a code Cell, used its deployment information in a frontend, funded a protected address, supplied authorization through a witness, and successfully consumed the locked Cell.
+
+The debugging process was also useful because it showed me that building a CKB dApp involves more than writing contract logic. The development environment, build tools, deployment artifacts, RPC connection, transaction construction, Cell dependencies, witness structure, and user interface must all agree. The simple hash lock is not production-ready, but it provided a clear foundation for understanding how more secure CKB Lock Scripts can be designed.
